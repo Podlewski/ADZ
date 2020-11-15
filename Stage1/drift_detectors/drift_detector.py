@@ -17,11 +17,17 @@ class DriftDetector(metaclass=ABCMeta):
         tablicę predykcji w postaci zmiennych logicznych.
         """
         for i in range(len(predictions)):
-            self.model.add_element(int(not predictions[i]))
+            self.model.add_element(self.prepare_element(predictions[i]))
             if self.model.detected_change():
                 self.change_indexes.append(i)          
             if self.model.detected_warning_zone():
                 self.warning_zones_indexes.append(i)
+
+    def prepare_element(self, prediction):
+        """
+        Zmiana predykcji z postaci zmiennej logicznej na postać odpowiednią dla implementacji algorytmu
+        """
+        return int(not prediction)
 
     def get_name(self):
         return self.name
