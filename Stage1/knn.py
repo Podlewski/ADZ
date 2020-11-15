@@ -39,6 +39,16 @@ class KNN:
         """Oblicza poprawność klasyfikacji"""
         return metrics.accuracy_score(self.test_labels, self.prediction)
 
+    def get_accuracy_range(self, start_index=0, end_index=0):
+        """Oblicza poprawność dla podanego zakresu. Kiedy indeksy nie zostaną
+        podane bierze odpiwiednio początek i koniec zakresu"""
+        if end_index == 0:
+            end_index = len(self.prediction)
+
+        return metrics.accuracy_score(
+            self.test_labels[start_index:end_index],
+            self.prediction[start_index:end_index])
+
     def get_prediction_table(self):
         """
         Zwraca tablicę zawierającą informację o poprawności przypisania
