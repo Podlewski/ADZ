@@ -5,6 +5,7 @@ from drift_detectors.drift_ddm import DriftDDM
 from drift_detectors.drift_eddm import DriftEDDM
 from drift_detectors.drift_page_hinkley import DriftPageHinkley
 from knn import KNN
+from util import *
 
 argument_parser = ArgumentParser()
 filename = argument_parser.get_filename()
@@ -34,3 +35,6 @@ for algorithm in algorithms:
     warning_zones_indexes = algorithm.get_warning_zones_indexes()
 
     print(f'{algorithm.get_name()+":": <15}{change_indexes}')
+
+    get_accuracy_trend_plot(algorithm.get_name(), prediction_table, change_indexes)
+    get_accuracy_trend_for_window_plot(algorithm.get_name(), prediction_table, 1000, change_indexes)
