@@ -3,7 +3,7 @@ from numpy import unique
 from sklearn import metrics, neighbors
 
 
-class KNeighbors:
+class KNN:
     """Klasyfikator k najbliższych sąsiadów"""
     model = None
     unique_labels = None

@@ -1,21 +1,16 @@
 from skmultiflow.drift_detection.ddm import DDM
-from skmultiflow.drift_detection.eddm import EDDM
 
+from abc import ABCMeta, abstractmethod
 
-class DriftDetector():
+class DriftDetector(metaclass=ABCMeta):
     """Klasa detektora dryftu"""
-    model = None
-    change_indexes = []
-    warning_zones_indexes = []
 
-    def __init__(self, model):
-        """Inicjalizacja klasy detektora dryftu przyjmująca nazwę algorytmu"""
-        if model == 'ddm' or model == 'DDM':
-            self.model = DDM()
-        elif model == 'eddm' or model == 'EDDM':
-            self.model = EDDM()
-        else:
-            raise Exception('Count not find given drift detection method')
+    def __init__(self):
+        """Inicjalizacja klasy detektora dryftu"""
+        self.model = None
+        self.name = None
+        self.change_indexes = []
+        self.warning_zones_indexes = []
 
     def catch_concept_drift(self, predictions):
         """
@@ -29,10 +24,13 @@ class DriftDetector():
             if self.model.detected_warning_zone():
                 self.warning_zones_indexes.append(i)          
 
+    def get_name(self):
+        return self.name
+
     def get_change_indexes(self):
         """Zwraca indeksy dla których algorytm wykrył Concept drift"""
-        return self.change_indexes
+        return self.change_indexes.copy()
 
     def get_warning_zones_indexes(self):
         """Zwraca indeksy dla których algorytm wykrył strefę zagrożenia"""
-        return self.warning_zones_indexes
+        return self.warning_zones_indexes.copy()
