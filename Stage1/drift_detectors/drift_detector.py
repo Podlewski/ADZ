@@ -1,6 +1,5 @@
-from skmultiflow.drift_detection.ddm import DDM
+from abc import ABCMeta
 
-from abc import ABCMeta, abstractmethod
 
 class DriftDetector(metaclass=ABCMeta):
     """Klasa detektora dryftu"""
@@ -22,7 +21,7 @@ class DriftDetector(metaclass=ABCMeta):
             if self.model.detected_change():
                 self.change_indexes.append(i)          
             if self.model.detected_warning_zone():
-                self.warning_zones_indexes.append(i)          
+                self.warning_zones_indexes.append(i)
 
     def get_name(self):
         return self.name

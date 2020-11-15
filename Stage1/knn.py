@@ -1,4 +1,3 @@
-import warnings
 from numpy import unique
 from sklearn import metrics, neighbors
 

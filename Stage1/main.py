@@ -5,12 +5,6 @@ from drift_detectors.drift_ddm import DriftDDM
 from drift_detectors.drift_eddm import DriftEDDM
 from drift_detectors.drift_page_hinkley import DriftPageHinkley
 from knn import KNN
-import pandas as pd
-import sys
-from skmultiflow.drift_detection.eddm import EDDM
-from skmultiflow.drift_detection.ddm import DDM
-
-
 
 argument_parser = ArgumentParser()
 filename = argument_parser.get_filename()
