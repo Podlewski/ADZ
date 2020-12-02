@@ -1,7 +1,9 @@
 from matplotlib import pyplot as plt
+from collections import namedtuple
 import os
 import seaborn
 
+Plot = namedtuple('Plot', ['x', 'y', 'label', 'color'])
 
 def count_accuracy_trend(predictions):
     correct = 0
@@ -23,20 +25,39 @@ def count_accuracy_trend_for_window(predictions, windowLen=10):
     return accuracy_trend
 
 
+def get_plot_title(classifier, params, algorithm, suffix):
+    return f'{classifier} {params}, {algorithm} - {suffix}'
+
+
+def get_plot_filename(algorithm, file_prefix, params):
+    params_short = params.replace(', ', '-').replace('(', '').replace(')', '')
+    return f'img\\{file_prefix}_{"".join(algorithm.split())}_{params_short}'
+
+
+def save_drift_plot(title, filename, plots, lines):
+    for plot in plots:
+        seaborn.lineplot(x=plot.x, y=plot.y, label=plot.label, color=plot.color)
+
+    for x in lines:
+        plt.axvline(x, color='red')
+
+    plt.title(title)
+    plt.savefig(filename, dpi=300)
+
+
 def save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
                        lines, window):
     accuracy_trend = count_accuracy_trend(predictions)
     window_accuracy_trend = count_accuracy_trend_for_window(predictions, window)
 
-    seaborn.lineplot(x=range(len(accuracy_trend)), y=accuracy_trend, label='dokładność')
-    seaborn.lineplot(x=range(window, len(predictions)), y=window_accuracy_trend, color='green',
-                     label='dokładność ostatnich {} próbek'.format(window))
-    for x in lines:
-        plt.axvline(x, color='red')
+    acc_plot = Plot(x=range(len(accuracy_trend)), y=accuracy_trend, label='dokładność', color='blue')
+    window_acc_plot = Plot(x=range(window, len(predictions)), y=window_accuracy_trend, color='green',
+                     label=f'dokładność ostatnich {window} próbek')
 
-    plt.title(f'{classifier} {params}, {algorithm} - dokładność klasyfikacji z wykrytym dryftem')
-    params_short = params.replace(', ', '-').replace('(', '').replace(')', '')
-    plt.savefig(f'img\\Acc_{file_prefix}_{"".join(algorithm.split())}_{params_short}', dpi=300)
+    title = get_plot_title(classifier, params, algorithm, 'dokładność klasyfikacji z wykrytym dryftem')
+    filename = get_plot_filename(algorithm, f'Acc_{file_prefix}', params)
+
+    save_drift_plot(title, filename, [acc_plot, window_acc_plot], lines)
 
 
 def save_plots(algorithm, classifier, file_prefix, params, predictions,
