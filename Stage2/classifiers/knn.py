@@ -8,7 +8,7 @@ class KNN(Classifier):
 
     def __init__(self, data, labels, training_set_ratio, neighbors_number=5):
         super().__init__(data, labels, training_set_ratio)
-        self.name = 'k najbliższych sąsiadów'
+        self.name = 'K najbliższych sąsiadów'
         self.short_name = 'Knn'
         self.params_string = f'({neighbors_number})'
         self.model = neighbors.KNeighborsClassifier(neighbors_number)

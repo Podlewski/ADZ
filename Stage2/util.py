@@ -28,12 +28,13 @@ def save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
     accuracy_trend = count_accuracy_trend(predictions)
     window_accuracy_trend = count_accuracy_trend_for_window(predictions, window)
 
-    seaborn.lineplot(x=range(len(accuracy_trend)), y=accuracy_trend)
-    seaborn.lineplot(x=range(window, len(predictions)), y=window_accuracy_trend, color='green')
+    seaborn.lineplot(x=range(len(accuracy_trend)), y=accuracy_trend, label='dokładność')
+    seaborn.lineplot(x=range(window, len(predictions)), y=window_accuracy_trend, color='green',
+                     label='dokładność ostatnich {} próbek'.format(window))
     for x in lines:
         plt.axvline(x, color='red')
 
-    plt.title(f'{classifier}{params}, {algorithm} - dokładność klasyfikacji z wykrytym dryftem')
+    plt.title(f'{classifier} {params}, {algorithm} - dokładność klasyfikacji z wykrytym dryftem')
     params_short = params.replace(', ', '-').replace('(', '').replace(')', '')
     plt.savefig(f'img\\Acc_{file_prefix}_{"".join(algorithm.split())}_{params_short}', dpi=300)
 
