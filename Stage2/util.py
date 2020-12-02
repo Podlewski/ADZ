@@ -26,7 +26,8 @@ def count_accuracy_trend_for_window(predictions, windowLen=10):
 
 
 def get_plot_title(classifier, params, algorithm, suffix):
-    return f'{classifier} {params}, {algorithm} - {suffix}'
+    parsed_params = f' {params}' if params else ""
+    return f'{classifier}{parsed_params}, {algorithm} - {suffix}'
 
 
 def get_plot_filename(algorithm, file_prefix, params):
