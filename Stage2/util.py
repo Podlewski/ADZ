@@ -1,5 +1,6 @@
-import seaborn
 from matplotlib import pyplot as plt
+import os
+import seaborn
 
 
 def count_accuracy_trend(predictions):
@@ -39,6 +40,8 @@ def save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
 
 def save_plots(algorithm, classifier, file_prefix, params, predictions,
                lines=[], window=1000):
+    if not os.path.exists('img'):
+        os.makedirs('img')
     plt.figure(figsize=(9,6))
     save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
                        lines, window)
