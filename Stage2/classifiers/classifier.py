@@ -14,6 +14,7 @@ class Classifier(metaclass=ABCMeta):
         """
         self.name = None
         self.short_name = None
+        self.params_string = None
         self.model = None
         self.unique_labels = unique(labels)
         partition_index = int(len(data.index) * training_set_ratio)
@@ -63,3 +64,7 @@ class Classifier(metaclass=ABCMeta):
     def get_short_name(self):
         """Zwraca nazwę na potrzebę tworzenia plików"""
         return self.short_name
+
+    def get_params_string(self):
+        """Zwraca ciąg znaków zawierajcy informację o ustawionych parametrach"""
+        return self.params_string

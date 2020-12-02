@@ -10,4 +10,5 @@ class Bayes(Classifier):
         super().__init__(data, labels, training_set_ratio)
         self.name = 'Naiwny klasyfikator Bayesa'
         self.short_name = 'Bayes'
+        self.params_string = ''
         self.model = naive_bayes.GaussianNB()

@@ -5,7 +5,7 @@ from drift_detectors.drift_ddm import DriftDDM
 from drift_detectors.drift_eddm import DriftEDDM
 from drift_detectors.drift_page_hinkley import DriftPageHinkley
 from classifiers.bayes import Bayes
-from classifiers.neuralNetwork import NeuralNetwork
+from classifiers.neural_network import NeuralNetwork
 from classifiers.knn import KNN
 from classifiers.svm import SVM
 from util import *
@@ -23,8 +23,8 @@ n_of_hidden = argument_parser.get_n_of_hidden_layers()
 data, labels = load_data(filename)
 
 classifiers = [Bayes(data, labels, training_set_ratio),
-               NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
                KNN(data, labels, training_set_ratio, neighbors_number),
+               NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
                SVM(data, labels, training_set_ratio, kernel, regulation)]
 
 separator = False
@@ -54,5 +54,6 @@ for classifier in classifiers:
 
         print(f'{algorithm.get_name()+":": <15}{change_indexes}')
 
-        # get_accuracy_trend_plot(algorithm.get_name(), prediction_table, change_indexes)
-        # get_accuracy_trend_for_window_plot(algorithm.get_name(), prediction_table, change_indexes, 1000)
+        save_plots(algorithm.get_name(), classifier.get_name(),
+                   classifier.get_short_name(), classifier.get_params_string(),
+                   prediction_table, change_indexes)
