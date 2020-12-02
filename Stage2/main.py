@@ -5,7 +5,7 @@ from drift_detectors.drift_ddm import DriftDDM
 from drift_detectors.drift_eddm import DriftEDDM
 from drift_detectors.drift_page_hinkley import DriftPageHinkley
 from classifiers.bayes import Bayes
-from classifiers.decision_tree import DecisionTree
+from classifiers.neuralNetwork import NeuralNetwork
 from classifiers.knn import KNN
 from classifiers.svm import SVM
 from util import *
@@ -15,13 +15,17 @@ filename = argument_parser.get_filename()
 adwin_delta = argument_parser.get_delta()
 training_set_ratio = argument_parser.get_training_set_ratio()
 neighbors_number = argument_parser.get_neighbors_number()
+kernel = argument_parser.get_kernel()
+regulation = argument_parser.get_regulation()
+max_iters = argument_parser.get_iterations()
+n_of_hidden = argument_parser.get_n_of_hidden_layers()
 
 data, labels = load_data(filename)
 
 classifiers = [Bayes(data, labels, training_set_ratio),
-               DecisionTree(data, labels, training_set_ratio),
+               NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
                KNN(data, labels, training_set_ratio, neighbors_number),
-               SVM(data, labels, training_set_ratio)]
+               SVM(data, labels, training_set_ratio, kernel, regulation)]
 
 separator = False
 
