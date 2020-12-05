@@ -10,5 +10,5 @@ class SVM(Classifier):
         super().__init__(data, labels, training_set_ratio)
         self.name = 'Maszyna wektorów nośnych'
         self.short_name = 'Svm'
-        self.params_string = f'({kernel}, {regulation})'
+        self.params_string = f'({kernel}, {str(regulation).replace(".", ",")})'
         self.model = svm.SVC(C=regulation, kernel=kernel)
