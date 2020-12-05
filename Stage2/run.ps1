@@ -42,7 +42,7 @@ ForEach ($k in $kernels)
 {
     ForEach ($r in $regulations)
     {
-        py .\main.py .\weatherAUS.csv svm -k $k -r $4
+        py .\main.py .\weatherAUS.csv svm -k $k -r $r
         Write-Host -NoNewline "."
     }
 }
