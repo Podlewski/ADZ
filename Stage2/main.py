@@ -37,9 +37,15 @@ for classifier in classifiers:
     classifier.train()
     classifier.test()
 
-    prediction_table = classifier.get_prediction_table()
+    accuracy_table = classifier.get_accuracy_table()
+    precision_table = classifier.get_precision_table()
+    sensitivity_table = classifier.get_sensitivity_table()
+    specificity_table = classifier.get_specificity_table()
 
-    print(f'{"Accuracy:":<15}{classifier.get_accuracy() * 100:4.2f} %\n')
+    print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
+    print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
+    print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
+    print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')    
 
     algorithms = [DriftDDM(),
                   DriftEDDM(),
@@ -47,7 +53,7 @@ for classifier in classifiers:
                   DriftPageHinkley()]
 
     for algorithm in algorithms:
-        algorithm.catch_concept_drift(prediction_table)
+        algorithm.catch_concept_drift(accuracy_table)
 
         change_indexes = algorithm.get_change_indexes()
         warning_zones_indexes = algorithm.get_warning_zones_indexes()
@@ -56,4 +62,4 @@ for classifier in classifiers:
 
         save_plots(algorithm.get_name(), classifier.get_name(),
                    classifier.get_short_name(), classifier.get_params_string(),
-                   prediction_table, change_indexes)
+                   accuracy_table, change_indexes)

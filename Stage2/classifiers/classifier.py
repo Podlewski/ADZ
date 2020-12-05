@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from numpy import unique
-from sklearn import metrics, neighbors
+from sklearn import metrics
 
 
 class Classifier(metaclass=ABCMeta):
@@ -12,6 +12,7 @@ class Classifier(metaclass=ABCMeta):
         treningową oraz testową, a także liczbę najbliższych sąsiadów
         (domyślnie 5)
         """
+
         self.name = None
         self.short_name = None
         self.params_string = None
@@ -31,9 +32,27 @@ class Classifier(metaclass=ABCMeta):
         """Dokonuje predykcji na zbiorze testowym"""
         self.prediction = self.model.predict(self.test_data)
 
+    def get_matrix(self):
+        return metrics.confusion_matrix(self.test_labels, self.prediction)
+
     def get_accuracy(self):
-        """Oblicza poprawność klasyfikacji"""
+        """Oblicza dokładność klasyfikacji"""
         return metrics.accuracy_score(self.test_labels, self.prediction)
+
+    def get_precision(self):
+        """Oblicza precyzję klasyfikacji"""
+        return metrics.precision_score(self.test_labels, self.prediction,
+                                       pos_label='Yes')
+
+    def get_sensitivity(self):
+        """Oblicza czułości klasyfikacji"""
+        return metrics.recall_score(self.test_labels, self.prediction,
+                                    pos_label='Yes')
+
+    def get_specificity(self):
+        """Oblicza specyficzności klasyfikacji"""
+        return metrics.recall_score(self.test_labels, self.prediction,
+                                    pos_label='No')
 
     def get_accuracy_range(self, start_index=0, end_index=0):
         """
@@ -47,7 +66,7 @@ class Classifier(metaclass=ABCMeta):
             self.test_labels[start_index:end_index],
             self.prediction[start_index:end_index])
 
-    def get_prediction_table(self):
+    def get_accuracy_table(self):
         """
         Zwraca tablicę zawierającą informację o poprawności przypisania
         klasy do danej próbki
@@ -56,6 +75,33 @@ class Classifier(metaclass=ABCMeta):
         for i in range(len(self.prediction)):
             prediction_table.append(self.prediction[i] == self.test_labels[i])
         return prediction_table
+
+    def get_precision_table(self):
+        """
+        Zwraca tablicę zawierającą informację o zaklsyfikowaniu
+        pozytywnych przypadków - tablicę precyzji 
+        """
+        precision_table = []
+        for i in range(len(self.prediction)):
+            if self.prediction[i] == 'Yes':
+                precision_table.append(self.prediction[i] == self.test_labels[i])
+        return precision_table     
+
+    def get_sensitivity_table(self):
+        """Zwraca tablicę czułości"""
+        sensitivity_table = []
+        for i in range(len(self.prediction)):
+            if self.test_labels[i] == 'Yes':
+                sensitivity_table.append(self.prediction[i] == self.test_labels[i])
+        return sensitivity_table  
+
+    def get_specificity_table(self):
+        """Zwraca tablicę specyficzności"""
+        specificity_table = []
+        for i in range(len(self.prediction)):
+            if self.test_labels[i] == 'No':
+                specificity_table.append(self.prediction[i] == self.test_labels[i])
+        return specificity_table  
 
     def get_name(self):
         """Zwraca nazwę klasyfikatora"""

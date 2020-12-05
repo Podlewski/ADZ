@@ -23,9 +23,10 @@ class DriftDetector(metaclass=ABCMeta):
             if self.model.detected_warning_zone():
                 self.warning_zones_indexes.append(i)
 
-    def prepare_element(self, prediction):
+    def prepare_element(prediction):
         """
-        Zmiana predykcji z postaci zmiennej logicznej na postać odpowiednią dla implementacji algorytmu
+        Zmiana predykcji z postaci zmiennej logicznej na postać odpowiednią
+        dla implementacji algorytmu
         """
         return int(not prediction)
 
