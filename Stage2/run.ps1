@@ -1,13 +1,13 @@
-Write-Host -NoNewline "Bayes (1) "
+Write-Host -NoNewline "Bayes (1)"
 
 py .\main.py .\weatherAUS.csv bayes
 Write-Host -NoNewline "."
 
 
 Write-Host ""
-Write-Host -NoNewline "Knn (3) "
+Write-Host -NoNewline "Knn (2)"
 
-$neighbors = @(2, 4, 6)
+$neighbors = @(2, 5)
 
 ForEach ($n in $neighbors)
 {
@@ -17,10 +17,10 @@ ForEach ($n in $neighbors)
 
 
 Write-Host ""
-Write-Host -NoNewline "NN (6) "
+Write-Host -NoNewline "NN (4)"
 
-$layers = @(1, 10, 20)
-$iterations = @(100, 500, 1000)
+$layers = @(1, 10)
+$iterations = @(500, 1000)
 
 ForEach ($l in $layers)
 {
@@ -33,10 +33,10 @@ ForEach ($l in $layers)
 
 
 Write-Host ""
-Write-Host -NoNewline "SVM (6) "
+Write-Host -NoNewline "SVM (4)"
 
-$kernels = @("rbf", "poly", "sigmoid")
-$regulations = @(0.1, 0.5, 5)
+$kernels = @("rbf", "poly")
+$regulations = @(0.1, 1)
 
 ForEach ($k in $kernels)
 {
