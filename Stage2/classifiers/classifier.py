@@ -42,17 +42,17 @@ class Classifier(metaclass=ABCMeta):
     def get_precision(self):
         """Oblicza precyzję klasyfikacji"""
         return metrics.precision_score(self.test_labels, self.prediction,
-                                       pos_label='Yes')
+                                       pos_label=0)
 
     def get_sensitivity(self):
         """Oblicza czułości klasyfikacji"""
         return metrics.recall_score(self.test_labels, self.prediction,
-                                    pos_label='Yes')
+                                    pos_label=0)
 
     def get_specificity(self):
         """Oblicza specyficzności klasyfikacji"""
         return metrics.recall_score(self.test_labels, self.prediction,
-                                    pos_label='No')
+                                    pos_label=1)
 
     def get_accuracy_range(self, start_index=0, end_index=0):
         """
@@ -83,7 +83,7 @@ class Classifier(metaclass=ABCMeta):
         """
         precision_table = []
         for i in range(len(self.prediction)):
-            if self.prediction[i] == 'Yes':
+            if self.prediction[i] == 0:
                 precision_table.append(self.prediction[i] == self.test_labels[i])
         return precision_table     
 
@@ -91,7 +91,7 @@ class Classifier(metaclass=ABCMeta):
         """Zwraca tablicę czułości"""
         sensitivity_table = []
         for i in range(len(self.prediction)):
-            if self.test_labels[i] == 'Yes':
+            if self.test_labels[i] == 0:
                 sensitivity_table.append(self.prediction[i] == self.test_labels[i])
         return sensitivity_table  
 
@@ -99,7 +99,7 @@ class Classifier(metaclass=ABCMeta):
         """Zwraca tablicę specyficzności"""
         specificity_table = []
         for i in range(len(self.prediction)):
-            if self.test_labels[i] == 'No':
+            if self.test_labels[i] == 1:
                 specificity_table.append(self.prediction[i] == self.test_labels[i])
         return specificity_table  
 

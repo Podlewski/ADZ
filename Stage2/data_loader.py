@@ -19,6 +19,6 @@ def load_data(file_name):
     df = pd.read_csv(file_name, header=0).dropna()
 
     data = df.iloc[:,:-1].dropna(axis=1, how='all').apply(factorize)
-    labels = df.iloc[:,-1]
+    labels = pd.DataFrame(pd.factorize(df.iloc[:,-1])[0])
 
     return data, labels
