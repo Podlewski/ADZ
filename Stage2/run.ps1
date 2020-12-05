@@ -26,7 +26,7 @@ ForEach ($l in $layers)
 {
     ForEach ($i in $iterations)
     {
-        py .\main.py .\weatherAUS.csv svm -l $l -i $i
+        py .\main.py .\weatherAUS.csv nn -l $l -i $i
         Write-Host -NoNewline "."
     }
 }
