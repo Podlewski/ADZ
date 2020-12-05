@@ -17,6 +17,7 @@ class ArgumentParser:
                                  help='Nazwa pliku z danymi strumieniowymi')
 
         self.parser.add_argument(metavar='ALGORYTM', dest='algorithm', type=str,
+                                 choices=['bayes', 'knn', 'nn', 'svm'],
                                  help='Wybrany klasyfikator (wspierane algorytmy: bayes, knn, nn, svm)')
 
         self.parser.add_argument('-t', metavar='T', dest='training_set_ratio',
@@ -31,6 +32,7 @@ class ArgumentParser:
                                  default=0.002, help='Delta dla algorytmu ADWIN')
 
         self.parser.add_argument('-k', metavar='K', dest='kernel', type=str,
+                                 choices=['linear', 'rbf', 'poly', 'sigmoid'],
                                  default="rbf", help='Funkcja jądra dla algorytmu SVM (wspierane funcje: linear, rbf, poly, sigmoid)')
 
         self.parser.add_argument('-r', metavar='R', dest='regulation', type=float,
@@ -41,6 +43,10 @@ class ArgumentParser:
 
         self.parser.add_argument('-i', metavar='I', dest='iterations', type=int,
                                  default=1000, help='Maksymalna liczba iteracji sieci neuronowej')
+
+        self.parser.add_argument('--print', dest='print', action='store_const',
+                                 const=True, default=False,
+                                 help='Print data')
 
         self.args = self.parser.parse_args()
 
@@ -57,10 +63,6 @@ class ArgumentParser:
         return self.args.neighbors_number
 
     def get_kernel(self):
-        supported_kernels = ['linear', 'rbf', 'poly', 'sigmoid']
-        while self.args.kernel not in supported_kernels:
-            self.args.kernel = str(input('\nWybierz wspieraną funkcję jądra (linear, rbf, poly, sigmoid) \nWybór: '))
-
         return self.args.kernel
 
     def get_regulation(self):
@@ -73,8 +75,7 @@ class ArgumentParser:
         return self.args.iterations
 
     def get_algorithm(self):
-        supported_algorithms = ['bayes', 'knn', 'nn', 'svm']
-        while self.args.algorithm not in supported_algorithms:
-            self.args.algorithm = str(input('\nWybierz wspierany klasyfikator (bayes, knn, nn, svm) \nWybór: '))
-
         return self.args.algorithm
+
+    def is_printing(self):
+        return self.args.print

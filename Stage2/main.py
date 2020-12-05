@@ -20,6 +20,7 @@ regulation = argument_parser.get_regulation()
 max_iters = argument_parser.get_iterations()
 n_of_hidden = argument_parser.get_n_of_hidden_layers()
 algorithm = argument_parser.get_algorithm()
+printing = argument_parser.is_printing()
 
 data, labels = load_data(filename)
 
@@ -30,7 +31,6 @@ classifiers = {'bayes': Bayes(data, labels, training_set_ratio),
 
 classifier =  classifiers[algorithm]
 
-print(f'{classifier.get_name()}\n')
 classifier.train()
 classifier.test()
 
@@ -39,10 +39,12 @@ precision_table = classifier.get_precision_table()
 sensitivity_table = classifier.get_sensitivity_table()
 specificity_table = classifier.get_specificity_table()
 
-print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
-print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
-print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
-print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')
+if printing is True:
+    print(f'{classifier.get_name()}\n')
+    print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
+    print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
+    print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
+    print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')
 
 
 algorithms = [DriftDDM(),
@@ -56,7 +58,8 @@ for algorithm in algorithms:
     change_indexes = algorithm.get_change_indexes()
     warning_zones_indexes = algorithm.get_warning_zones_indexes()
 
-    print(f'{algorithm.get_name()+":": <15}{change_indexes}')
+    if printing is True:
+        print(f'{algorithm.get_name()+":": <15}{change_indexes}')
 
     save_plots(algorithm.get_name(), classifier.get_name(),
                classifier.get_short_name(), classifier.get_params_string(),
