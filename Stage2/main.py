@@ -19,47 +19,45 @@ kernel = argument_parser.get_kernel()
 regulation = argument_parser.get_regulation()
 max_iters = argument_parser.get_iterations()
 n_of_hidden = argument_parser.get_n_of_hidden_layers()
+algorithm = argument_parser.get_algorithm()
 
 data, labels = load_data(filename)
 
-classifiers = [Bayes(data, labels, training_set_ratio),
-               KNN(data, labels, training_set_ratio, neighbors_number),
-               NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
-               SVM(data, labels, training_set_ratio, kernel, regulation)]
+classifiers = {'bayes': Bayes(data, labels, training_set_ratio),
+               'knn': KNN(data, labels, training_set_ratio, neighbors_number),
+               'nn': NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
+               'svm': SVM(data, labels, training_set_ratio, kernel, regulation)}
 
-separator = False
+classifier =  classifiers[algorithm]
 
-for classifier in classifiers:
-    if separator is True:
-        print(f'\n\n==============================')
-    separator = True
-    print(f'{classifier.get_name()}\n')
-    classifier.train()
-    classifier.test()
+print(f'{classifier.get_name()}\n')
+classifier.train()
+classifier.test()
 
-    accuracy_table = classifier.get_accuracy_table()
-    precision_table = classifier.get_precision_table()
-    sensitivity_table = classifier.get_sensitivity_table()
-    specificity_table = classifier.get_specificity_table()
+accuracy_table = classifier.get_accuracy_table()
+precision_table = classifier.get_precision_table()
+sensitivity_table = classifier.get_sensitivity_table()
+specificity_table = classifier.get_specificity_table()
 
-    print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
-    print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
-    print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
-    print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')    
+print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
+print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
+print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
+print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')
 
-    algorithms = [DriftDDM(),
-                  DriftEDDM(),
-                  DriftADWIN(adwin_delta),
-                  DriftPageHinkley()]
 
-    for algorithm in algorithms:
-        algorithm.catch_concept_drift(accuracy_table)
+algorithms = [DriftDDM(),
+              DriftEDDM(),
+              DriftADWIN(adwin_delta),
+              DriftPageHinkley()]
 
-        change_indexes = algorithm.get_change_indexes()
-        warning_zones_indexes = algorithm.get_warning_zones_indexes()
+for algorithm in algorithms:
+    algorithm.catch_concept_drift(accuracy_table)
 
-        print(f'{algorithm.get_name()+":": <15}{change_indexes}')
+    change_indexes = algorithm.get_change_indexes()
+    warning_zones_indexes = algorithm.get_warning_zones_indexes()
 
-        save_plots(algorithm.get_name(), classifier.get_name(),
-                   classifier.get_short_name(), classifier.get_params_string(),
-                   accuracy_table, change_indexes)
+    print(f'{algorithm.get_name()+":": <15}{change_indexes}')
+
+    save_plots(algorithm.get_name(), classifier.get_name(),
+               classifier.get_short_name(), classifier.get_params_string(),
+               accuracy_table, change_indexes)

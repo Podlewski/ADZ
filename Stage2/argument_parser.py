@@ -16,6 +16,9 @@ class ArgumentParser:
         self.parser.add_argument(metavar='NAZWA_PLIKU', dest='filename', type=str,
                                  help='Nazwa pliku z danymi strumieniowymi')
 
+        self.parser.add_argument(metavar='ALGORYTM', dest='algorithm', type=str,
+                                 help='Wybrany klasyfikator (wspierane algorytmy: bayes, knn, nn, svm)')
+
         self.parser.add_argument('-t', metavar='T', dest='training_set_ratio',
                                  type=float, default=0.2,
                                  help='Częśc zbioru treningowego dla klasyfikatorów')
@@ -68,3 +71,10 @@ class ArgumentParser:
 
     def get_iterations(self):
         return self.args.iterations
+
+    def get_algorithm(self):
+        supported_algorithms = ['bayes', 'knn', 'nn', 'svm']
+        while self.args.algorithm not in supported_algorithms:
+            self.args.algorithm = str(input('\nWybierz wspierany klasyfikator (bayes, knn, nn, svm) \nWybór: '))
+
+        return self.args.algorithm
