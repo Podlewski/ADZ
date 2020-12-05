@@ -11,11 +11,17 @@ class DriftDetector(metaclass=ABCMeta):
         self.change_indexes = []
         self.warning_zones_indexes = []
 
+    def reset_model(self):
+        self.model = None
+        self.change_indexes = []
+        self.warning_zones_indexes = []
+
     def catch_concept_drift(self, predictions):
         """
         Funkcja wyłapująca Concept drift oraz strefy zagrożenia. Pobiera ona
         tablicę predykcji w postaci zmiennych logicznych.
         """
+        self.reset_model()
         for i in range(len(predictions)):
             self.model.add_element(self.prepare_element(predictions[i]))
             if self.model.detected_change():
@@ -39,3 +45,5 @@ class DriftDetector(metaclass=ABCMeta):
     def get_warning_zones_indexes(self):
         """Zwraca indeksy dla których algorytm wykrył strefę zagrożenia"""
         return self.warning_zones_indexes.copy()
+
+

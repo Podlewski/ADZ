@@ -10,3 +10,8 @@ class DriftEDDM(DriftDetector):
         self.model = EDDM()
         self.change_indexes = []
         self.warning_zones_indexes = []
+
+    def reset_model(self):
+        self.model = EDDM()
+        self.change_indexes = []
+        self.warning_zones_indexes = []

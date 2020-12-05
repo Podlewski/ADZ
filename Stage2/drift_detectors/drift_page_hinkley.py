@@ -10,3 +10,8 @@ class DriftPageHinkley(DriftDetector):
         self.model = PageHinkley()
         self.change_indexes = []
         self.warning_zones_indexes = []
+
+    def reset_model(self):
+        self.model = PageHinkley()
+        self.change_indexes = []
+        self.warning_zones_indexes = []
