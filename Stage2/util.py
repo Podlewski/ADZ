@@ -3,9 +3,9 @@ from collections import namedtuple
 import os
 import seaborn
 
-Plot = namedtuple('Plot', ['x', 'y', 'label', 'color'])
+Plot = namedtuple('Plot', ['x', 'y', 'color'])
 
-def count_accuracy_trend(predictions):
+def count_trend(predictions):
     correct = 0
     accuracy_trend = []
     for x in range(len(predictions)):
@@ -37,41 +37,77 @@ def get_plot_filename(algorithm, file_prefix, params):
 
 def save_drift_plot(title, filename, plots, lines):
     for plot in plots:
-        seaborn.lineplot(x=plot.x, y=plot.y, label=plot.label, color=plot.color)
+        seaborn.lineplot(x=plot.x, y=plot.y, color=plot.color)
 
     for x in lines:
         plt.axvline(x, color='red')
 
     plt.title(title)
     plt.savefig(filename, dpi=300)
+    plt.close()
 
 
-def save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
-                       lines, window):
-    accuracy_trend = count_accuracy_trend(predictions)
-    window_accuracy_trend = count_accuracy_trend_for_window(predictions, window)
+def save_metric_plot(algorithm, classifier, metric_name, file_prefix, params, predictions):
+    print(f'save met: {len(predictions)}')
+    algorithm.catch_concept_drift(predictions)
+    change_indexes = algorithm.get_change_indexes()
 
-    acc_plot = Plot(x=range(len(accuracy_trend)), y=accuracy_trend, label='dokładność', color='blue')
-    window_acc_plot = Plot(x=range(window, len(predictions)), y=window_accuracy_trend, color='green',
-                     label=f'dokładność ostatnich {window} próbek')
+    accuracy_trend = count_trend(predictions)
 
-    title = get_plot_title(classifier, params, algorithm, 'dokładność klasyfikacji z wykrytym dryftem')
-    filename = get_plot_filename(algorithm, f'Acc_{file_prefix}', params)
+    acc_plot = Plot(x=range(len(accuracy_trend)), y=accuracy_trend, color='blue')
 
-    save_drift_plot(title, filename, [acc_plot, window_acc_plot], lines)
+    title = get_plot_title(classifier, params, algorithm.get_name(), metric_name)
+    filename = get_plot_filename(algorithm.get_name(), f'{metric_name}_{file_prefix}', params)
 
+    save_drift_plot(title, filename, [acc_plot], change_indexes)
 
-def save_plots(algorithm, classifier, file_prefix, params, predictions,
-               lines=[], window=1000):
+# def save_precision_plot(algorithm, classifier, file_prefix, params, predictions, lines):
+#     precision_trend = count_trend(predictions)
+#
+#     prec_plot = Plot(x=range(len(precision_trend)), y=precision_trend, color='blue')
+#
+#     title = get_plot_title(classifier, params, algorithm, 'precyzja klasyfikacji z wykrytym dryftem')
+#     filename = get_plot_filename(algorithm, f'Prec_{file_prefix}', params)
+#
+#     save_drift_plot(title, filename, [prec_plot], lines)
+#
+# def save_sensitivity_plot(algorithm, classifier, file_prefix, params, predictions, lines):
+#     sensitivity_trend = count_trend(predictions)
+#
+#     sens_plot = Plot(x=range(len(sensitivity_trend)), y=sensitivity_trend, color='blue')
+#
+#     title = get_plot_title(classifier, params, algorithm, 'czułość klasyfikacji z wykrytym dryftem')
+#     filename = get_plot_filename(algorithm, f'Sens_{file_prefix}', params)
+#
+#     save_drift_plot(title, filename, [sens_plot], lines)
+#
+# def save_specificity_plot(algorithm, classifier, file_prefix, params, predictions, lines):
+#     specificity_trend = count_trend(predictions)
+#
+#     spec_plot = Plot(x=range(len(specificity_trend)), y=specificity_trend, color='blue')
+#
+#     title = get_plot_title(classifier, params, algorithm, 'specyficzność klasyfikacji z wykrytym dryftem')
+#     filename = get_plot_filename(algorithm, f'Spec_{file_prefix}', params)
+#
+#     save_drift_plot(title, filename, [spec_plot], lines)
+
+def save_plots(algorithm, classifier, file_prefix, params, metrics):
+    # accuracy_table, precision_table, sensitivity_table, specificity_table = metrics
+    accuracy_table, precision_table = metrics
+
+    print(len(accuracy_table))
+    print(len(precision_table))
     if not os.path.exists('img'):
         os.makedirs('img')
+
     plt.figure(figsize=(9,6))
-    save_accuracy_plot(algorithm, classifier, file_prefix, params, predictions,
-                       lines, window)
+
+    save_metric_plot(algorithm, classifier, "precyzja", file_prefix, params, precision_table)
+    save_metric_plot(algorithm, classifier, "dokładność", file_prefix, params, accuracy_table)
 
 
 def get_accuracy_trend_plot(algorithm, predictions, lines=[]):
-    accuracy_trend = count_accuracy_trend(predictions)
+    accuracy_trend = count_trend(predictions)
     seaborn.lineplot(x=range(len(accuracy_trend)), y=accuracy_trend)
     for x in lines:
         plt.axvline(x, color='red')

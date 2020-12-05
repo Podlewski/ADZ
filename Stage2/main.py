@@ -36,8 +36,10 @@ classifier.test()
 
 accuracy_table = classifier.get_accuracy_table()
 precision_table = classifier.get_precision_table()
-sensitivity_table = classifier.get_sensitivity_table()
-specificity_table = classifier.get_specificity_table()
+# sensitivity_table = classifier.get_sensitivity_table()
+# specificity_table = classifier.get_specificity_table()
+
+metrics = (accuracy_table, precision_table) #, sensitivity_table, specificity_table)
 
 if printing is True:
     print(f'{classifier.get_name()}\n')
@@ -47,20 +49,15 @@ if printing is True:
     print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')
 
 
-algorithms = [DriftDDM(),
-              DriftEDDM(),
-              DriftADWIN(adwin_delta),
-              DriftPageHinkley()]
+algorithms = [DriftDDM(),]
+              # DriftEDDM(),
+              # DriftADWIN(adwin_delta),
+              # DriftPageHinkley()]
 
 for algorithm in algorithms:
-    algorithm.catch_concept_drift(accuracy_table)
+    # if printing is True:
+    #     print(f'{algorithm.get_name()+":": <15}{change_indexes}')
 
-    change_indexes = algorithm.get_change_indexes()
-    warning_zones_indexes = algorithm.get_warning_zones_indexes()
-
-    if printing is True:
-        print(f'{algorithm.get_name()+":": <15}{change_indexes}')
-
-    save_plots(algorithm.get_name(), classifier.get_name(),
+    save_plots(algorithm, classifier.get_name(),
                classifier.get_short_name(), classifier.get_params_string(),
-               accuracy_table, change_indexes)
+               metrics)
