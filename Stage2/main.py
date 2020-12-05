@@ -27,11 +27,17 @@ classifiers = [Bayes(data, labels, training_set_ratio),
                NeuralNetwork(data, labels, training_set_ratio, n_of_hidden, max_iters),
                SVM(data, labels, training_set_ratio, kernel, regulation)]
 
+algorithms = [DriftDDM(),
+              DriftEDDM(),
+              DriftADWIN(adwin_delta),
+              DriftPageHinkley()]
+
 separator = False
 
+classifier_metric_scores = []
 for classifier in classifiers:
     if separator is True:
-        print(f'\n\n==============================')
+        print(f'\n==============================')
     separator = True
     print(f'{classifier.get_name()}\n')
     classifier.train()
@@ -45,21 +51,27 @@ for classifier in classifiers:
     print(f'{"Dokładność:":<15}{classifier.get_accuracy() * 100:4.2f} %')
     print(f'{"Precyzja:":<15}{classifier.get_precision() * 100:4.2f} %')
     print(f'{"Czułość:":<15}{classifier.get_sensitivity() * 100:4.2f} %')
-    print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %\n')    
+    print(f'{"Specyficzność:":<15}{classifier.get_specificity() * 100:4.2f} %')
 
-    algorithms = [DriftDDM(),
-                  DriftEDDM(),
-                  DriftADWIN(adwin_delta),
-                  DriftPageHinkley()]
+    result = (classifier, accuracy_table, precision_table, sensitivity_table, specificity_table)
+    classifier_metric_scores.append(result)
 
-    for algorithm in algorithms:
+
+print(f'\n==============================')
+
+for algorithm in algorithms:
+    print(f'\n==============================')
+    print(f'{algorithm.get_name()}\n')
+    for score in classifier_metric_scores:
+        classifier = score[0]
+        accuracy_table = score[1]
         algorithm.catch_concept_drift(accuracy_table)
 
         change_indexes = algorithm.get_change_indexes()
         warning_zones_indexes = algorithm.get_warning_zones_indexes()
 
-        print(f'{algorithm.get_name()+":": <15}{change_indexes}')
-
-        save_plots(algorithm.get_name(), classifier.get_name(),
-                   classifier.get_short_name(), classifier.get_params_string(),
-                   accuracy_table, change_indexes)
+        print(f'{classifier.get_name()+": ": <30}{change_indexes}')
+        #
+        # save_plots(algorithm.get_name(), classifier.get_name(),
+        #            classifier.get_short_name(), classifier.get_params_string(),
+        #            accuracy_table, change_indexes)
