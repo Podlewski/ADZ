@@ -12,7 +12,7 @@ Zadanie polega na analizie strumienia danych jego charakterystyki pod kątem poj
 
 Concept drift oznacza, że właściwości klasy decyzyjnej, którą model próbuje przewidzieć, zmieniają się wraz z upływem czasu w nieprzewidziany sposób. W wyniku tego trafność klasyfikacji maleje wraz z upływem czasu. 
 
-## Etap 2 - Wpływ klasyfikatora na detekcję zmienności trendu
+## Etap 2
 
 Zadanie polega na sprawdzeniu kilku (min. 2) klasyfikatorów. Badania proszę poprowadzić pod kątem różnych parametrów początkowych, różnych miar.  
 

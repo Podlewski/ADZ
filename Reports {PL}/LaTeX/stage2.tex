@@ -1,0 +1,1247 @@
+\documentclass{classrep}
+\usepackage[utf8]{inputenc}
+\frenchspacing
+
+\usepackage{graphicx}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{amsmath, amssymb, mathtools}
+\usepackage{subcaption}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+
+\setlength{\abovecaptionskip}{-10pt}
+
+\studycycle{Informatyka stosowana, studia dzienne, II st.}
+\coursesemester{II}
+\coursename{Analiza danych złożonych}
+\courseyear{2020/2021}
+
+\courseteacher{dr hab. inż. Agnieszka Duraj}
+\coursegroup{poniedziałek, 11:45}
+
+\author{%
+  \studentinfo{Paweł Galewicz}{234053}\\
+  \studentinfo{Karol Podlewski}{234106}%
+}
+
+\title{Etap 2}
+
+\begin{document}
+\maketitle
+
+\setstretch{1.5}
+
+\tableofcontents
+\setstretch{1.25}
+\newpage
+
+\section{Cel}
+
+Zadanie polegało na analizie zachowania klasyfikatorów w przypadku wystąpienia dryftu w strumieniu danych dla różnych parametrów początkowych. 
+
+\section{Implementacja}
+
+Program został stworzony w języku Python w wersji 3.8.6, przy wsparciu bibliotek scikit-multiflow oraz scikit w celu skorzystania z algorytmów przeznaczonych do detekcji dryftu oraz klasyfikacji.
+
+Wybranym przez nas klasyfikatorem były algorytmy:
+\begin{enumerate}
+    \item Naiwny klasyfikatora Bayesa
+    \item Maszyna wektorów nośnych
+    \item K-najbliższych sąsiadów
+    \item Sztuczne sieci neuronowe
+\end{enumerate}
+
+Do detekcji dryftów wykorzystaliśmy algorytmy 
+\begin{enumerate}
+    \item DDM
+    \item EDDM
+    \item ADWIN
+    \item Page-Hinkley
+\end{enumerate}
+
+Wykorzystano też bibliotekę argparse - w stworzonym rozwiązaniu w łatwy sposób można określić większość parametrów algorytmów, takich jak liczbę sąsiadów w KNN, rodzaj funkcji jądra w SVM czy maksymalną liczbę iteracji w sieciach neuronowych, a także podział zbioru treningowego oraz sam plik z danymi.
+
+\section{Opis klasyfikatorów}
+
+\subsection{Naiwny klasyfikatora Bayesa}
+Naiwny klasyfikatora Bayesa dokonuje klasyfikacji na bazie twierdzenia Bayesa:
+$$ P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)} $$
+gdzie:
+\begin{itemize}
+    \item $A$, $B$ -- zdarzenia
+    \item $P(A \mid B)$ -- prawdopodobieństwo zdarzenia $A$, o ile zajdzie $B$
+    \item $P(B \mid A)$ -- prawdopodobieństwo zdarzenia $B$, o ile zajdzie $A$
+    \item $P(A)$ -- prawdopodobieństwo wystąpienia zdarzenia $A$
+    \item $P(B)$ -- suma prawdopodobieństw wszystkich potencjalnych skutków zdarzenia: $P(B)=\sum P(B\mid A)P(B)$
+\end{itemize}
+
+Model naiwnego klasyfikatora Bayesa zakłada, że dana cecha klasy jest niepowiązana z pozostałymi cechami. Każda z cech indywidualnie wskazuje na prawdopodobieństwo przynależności do danej klasy.
+Sprawdza się najlepiej przy dużych zbiorach danych. Jest wykorzystywany m.in. przy filtrowaniu spamu, diagnozie medycznej, czy prognozowaniu pogody.
+
+\subsection{Maszyna wektorów nośnych}
+Maszyna wektorów nośnych jest klasyfikatorem liniowym. Algorytm polega na rozdzieleniu obiektów o różnej przynależności klasowej za pomocą hiperpłaszczyzn, które mają być od siebie możliwe jak najbardziej oddalone - taką odległość nazywa się marginesem klasyfikatora, a hiperpłaszczyzny z największym marginesem wektorami nośnymi. 
+
+Algorytm bardzo dobrze sobie radzi z danymi liniowo separowanymi, ale nie zawsze będzie istniała hiperpłaszczyzna rozdzielająca, która zapewni poprawną klasyfikację wszystkich elementów zbioru. W takich przypadkach maszyna wektorów nośnych za pomocą funkcji jądrowych transformuje przestrzeń do postaci liniowo separowanej.
+
+\subsection{Klasyfikator k-najbliższych sąsiadów}
+Algorytm k najbliższych sąsiadów jest klasyfikatorem (ściślej algorytmem regresji regresji nieparametrycznej). Algorytm ten zakłada dany zbiór uczący, w którym znajdują się już sklasyfikowane dane. Schemat składa się z szukania \textit{k} obiektów najbliższych do obiektu klasyfikowanego. Następnie, przyporządkowuje się nowy obiekt do najczęściej występującej klasy w obrębie jego k-najbliższych sąsiadów.\\
+
+\subsection{Algorytm sztucznych sieci neuronowych}
+Sztuczna siec neuronowa  jest połączeniem wielu elementow nazywanych sztucznymi neuronami, które tworzą conajmniej trzy warstwy: wejściową, ukrytą oraz wyjściową. Neurony przetwarzają informacje dzięki nadaniu im parametrów które nazywane są wagami. Podstawą tworzenia sieci neuronowej jest modyfikowanie współczynnika wagowego połączeń w celu uzyskania poprawnych wyników.
+
+\section{Badania}
+
+Celem przeprowadzonych przez nas badań było sprawdzenie różnych klasyfikatorów pod względem odporności na zmian dryftu na zadanym strumieniu danych. W tym celu stworzyliśmy modele klasyfikatorów z różnymi parametrami startowymi. Zbiór treningowy stanowił 20\% wszystkich danych. Dla wyuczonych modeli generowaliśmy macierz pomyłek i na jej podstawie wyliczaliśmy 4 miary ewaluacyjne:
+\begin{itemize}
+    \item Dokładność (ang. \textit{Accuracy}) -- określa jak duży odsetek obserwacji został prawidłowo zaklasyfikowany.
+    \item Precyzja (ang. \textit{Precision}) -- oznacza jak dużo zaklasyfikowanych do danej klasy obserwacji rzeczywiście do niej należy. 
+    \item Czułość (ang. \textit{Sensitivity}) -- stosunek liczby obserwacji oznaczonych jako \textit{true positive} do sumy \textit{true positive} i \textit{false negative}. Jej wartość interpretować można jako zdolność do prawidłowego zakwalifikowania obserwacji do odpowiedniej klasy. 
+    \item Specyficzność (ang. \textit{Specificity}) -- stosunek liczby obserwacji \textit{true negative} do sumy \textit{true negative} i \textit{false positive}. Określa jak dobrze model rozpoznaje, że dana obserwacja nie należy do danej klasy.
+\end{itemize} 
+
+~\\ Każdy klasyfikator badany był pod względem wpływu parametrów startowych na wystąpienia dryftu. Zjawisko to sprawdzaliśmy wykorzystując kolejne algorytmy detekcji. Wartości miar dla kolejnych próbek, wraz z momentami pojawienia się dryftu zostały zaprezentowane na wykresach.
+
+~\\ Wybrany przez nas zbiór danych to \href{https://www.kaggle.com/jsphyg/weather-dataset-rattle-package}{\textbf{Rain in Australia}}, który zawiera historię danych pogodowych z 10 lat (data, lokalizacja, temperatury, opady, wiatr, ciśnienie, wilgotność, nasłonecznienie itp) wraz z informacją czy następnego dnia padało - jest to cel klasyfikacji dla tego zbioru danych.
+
+~\\ W badaniach uwzględniliśmy następujące konfiguracje klasyfikatorów:
+\begin{itemize}
+    \item Naiwny klasyfikator Bayesa -- brak parametrów do zmiany.
+    \item Maszyna wektorów nośnych -- jądro wielomianowe lub radialne, regularyzacja 0,1 lub 1.
+    \item Klasyfikator k-najbliższych sąsiadów -- 2 lub 5 sąsiadów.
+    \item Algorytm sztucznych sieci neuronowych -- 1 lub 10 ukrytych warstw, 500 lub 1000 iteracji. 
+\end{itemize}
+
+~\\Z badań otrzymaliśmy następujące wyniki:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setkeys{Gin}{draft=True}
+
+\subsection{Naiwny klasyfikatora Bayesa}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Bayes_DDM_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Bayes_EDDM_.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Bayes_ADWIN_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Bayes_PageHinkley_.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla naiwnego klasyfikatora Bayesa}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Bayes_DDM_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Bayes_EDDM_.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Bayes_ADWIN_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Bayes_PageHinkley_.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla naiwnego klasyfikatora Bayesa}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Bayes_DDM_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Bayes_EDDM_.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Bayes_ADWIN_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Bayes_PageHinkley_.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla naiwnego klasyfikatora Bayesa}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Bayes_DDM_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Bayes_EDDM_.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Bayes_ADWIN_.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Bayes_PageHinkley_.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla naiwnego klasyfikatora Bayesa}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setkeys{Gin}{draft=True}
+
+\subsection{Maszyna wektorów nośnych}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_DDM_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_EDDM_poly-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_ADWIN_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_PageHinkley_poly-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_DDM_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_EDDM_poly-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_ADWIN_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_PageHinkley_poly-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_DDM_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_EDDM_poly-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_ADWIN_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_PageHinkley_poly-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_DDM_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_EDDM_poly-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_ADWIN_poly-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_PageHinkley_poly-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_DDM_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_EDDM_poly-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_ADWIN_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_PageHinkley_poly-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_DDM_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_EDDM_poly-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_ADWIN_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_PageHinkley_poly-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_DDM_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_EDDM_poly-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_ADWIN_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_PageHinkley_poly-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_DDM_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_EDDM_poly-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_ADWIN_poly-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_PageHinkley_poly-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla maszyny wektorów nośnych - metoda wielomianowa, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_DDM_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_EDDM_rbf-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_ADWIN_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_PageHinkley_rbf-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla maszyny wektorów nośnych - metoda radialna, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_DDM_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_EDDM_rbf-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_ADWIN_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_PageHinkley_rbf-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla maszyny wektorów nośnych - metoda radialna, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_DDM_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_EDDM_rbf-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_ADWIN_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_PageHinkley_rbf-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla maszyny wektorów nośnych - metoda radialna, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_DDM_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_EDDM_rbf-0,1.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_ADWIN_rbf-0,1.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_PageHinkley_rbf-0,1.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla maszyny wektorów nośnych - metoda radialna, regularyzacja 0.1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_DDM_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_EDDM_rbf-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_ADWIN_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Svm_PageHinkley_rbf-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla maszyny wektorów nośnych - metoda radialna, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_DDM_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_EDDM_rbf-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_ADWIN_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Svm_PageHinkley_rbf-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla maszyny wektorów nośnych - metoda radialna, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_DDM_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_EDDM_rbf-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_ADWIN_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Svm_PageHinkley_rbf-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla maszyny wektorów nośnych - metoda radialna, regularyzacja 1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_DDM_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_EDDM_rbf-1,0.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_ADWIN_rbf-1,0.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Svm_PageHinkley_rbf-1,0.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla maszyny wektorów nośnych - metoda radialna, regularyzacja 1}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setkeys{Gin}{draft=True}
+
+\subsection{Klasyfikator k-najbliższych sąsiadów}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_DDM_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_EDDM_2.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_ADWIN_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_PageHinkley_2.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla klasyfikatora k-najbliższych sąsiadów - 2 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_DDM_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_EDDM_2.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_ADWIN_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_PageHinkley_2.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla klasyfikatora k-najbliższych sąsiadów - 2 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_DDM_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_EDDM_2.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_ADWIN_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_PageHinkley_2.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla klasyfikatora k-najbliższych sąsiadów - 2 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_DDM_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_EDDM_2.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_ADWIN_2.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_PageHinkley_2.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla klasyfikatora k-najbliższych sąsiadów - 2 sąsiadów}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_DDM_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_EDDM_5.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_ADWIN_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_Knn_PageHinkley_5.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność dla klasyfikatora k-najbliższych sąsiadów - 5 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_DDM_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_EDDM_5.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_ADWIN_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_Knn_PageHinkley_5.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja dla klasyfikatora k-najbliższych sąsiadów - 5 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_DDM_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_EDDM_5.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_ADWIN_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_Knn_PageHinkley_5.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość dla klasyfikatora k-najbliższych sąsiadów - 5 sąsiadów}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_DDM_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_EDDM_5.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_ADWIN_5.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_Knn_PageHinkley_5.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność dla klasyfikatora k-najbliższych sąsiadów - 5 sąsiadów}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setkeys{Gin}{draft=True}
+
+\subsection{Algorytm sztucznych sieci neuronowych}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_DDM_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_EDDM_1-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_ADWIN_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_PageHinkley_1-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność sztucznej sieci neuronowej - 1 ukryta warstwa, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_DDM_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_EDDM_1-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_ADWIN_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_PageHinkley_1-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja sztucznej sieci neuronowej - 1 ukryta warstwa, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_DDM_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_EDDM_1-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_ADWIN_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_PageHinkley_1-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość sztucznej sieci neuronowej - 1 ukryta warstwa, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_DDM_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_EDDM_1-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_ADWIN_1-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_PageHinkley_1-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność sztucznej sieci neuronowej - 1 ukryta warstwa, 500 iteracji}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_DDM_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_EDDM_1-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_ADWIN_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_PageHinkley_1-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność sztucznej sieci neuronowej - 1 ukryta warstwa, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_DDM_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_EDDM_1-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_ADWIN_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_PageHinkley_1-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja sztucznej sieci neuronowej - 1 ukryta warstwa, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_DDM_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_EDDM_1-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_ADWIN_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_PageHinkley_1-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość sztucznej sieci neuronowej - 1 ukryta warstwa, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_DDM_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_EDDM_1-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_ADWIN_1-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_PageHinkley_1-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność sztucznej sieci neuronowej - 1 ukryta warstwa, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_DDM_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_EDDM_10-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_ADWIN_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_PageHinkley_10-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność sztucznej sieci neuronowej - 10 ukrytych warstw, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_DDM_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_EDDM_10-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_ADWIN_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_PageHinkley_10-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja sztucznej sieci neuronowej - 10 ukrytych warstw, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_DDM_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_EDDM_10-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_ADWIN_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_PageHinkley_10-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość sztucznej sieci neuronowej - 10 ukrytych warstw, 500 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_DDM_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_EDDM_10-500.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_ADWIN_10-500.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_PageHinkley_10-500.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność sztucznej sieci neuronowej - 10 ukrytych warstw, 500 iteracji}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_DDM_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_EDDM_10-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_ADWIN_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/dokładność/dokładność_MLP_PageHinkley_10-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Dokładność sztucznej sieci neuronowej - 10 ukrytych warstw, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_DDM_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_EDDM_10-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_ADWIN_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/precyzja/precyzja_MLP_PageHinkley_10-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Precyzja sztucznej sieci neuronowej - 10 ukrytych warstw, 1000 iteracji}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_DDM_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_EDDM_10-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_ADWIN_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/czułość/czułość_MLP_PageHinkley_10-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Czułość sztucznej sieci neuronowej - 10 ukrytych warstw, 1000 iteracji}
+    \label{nn10-1000}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_DDM_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_EDDM_10-1000.png}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_ADWIN_10-1000.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.475\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{resources/stage2/specyficzność/specyficzność_MLP_PageHinkley_10-1000.png}
+    \end{subfigure}
+    \vskip\baselineskip
+    \caption{Specyficzność sztucznej sieci neuronowej - 10 ukrytych warstw, 1000 iteracji}
+\end{figure}
+
+\newpage
+\section{Wnioski}
+
+\begin{enumerate}
+    \item Algorytmy DDM oraz EDDM zazwyczaj wykrywają dryft dużo częściej niż algorytm ADWIN, który zaś wykrywa dryft zauważalnie częściej od algorytmu Page Hinkley.
+    \item Niezależnie od wybranych parametrów, w przypadku gdy klasyfikator cechuje się bezbłędną klasyfikacją, żaden z algorytmów nie wykrywa dryftów. W przypadku bardzo małych zmian (np. 0.025\%) algorytm DDM potrafi wykryć dryft, przez co jest on bardzo wrażliwy na pomyłki przy klasyfikacji.
+    \item Naiwny klasyfikator Bayesa:
+    \begin{itemize}
+        \item Algorytm Page Hinkley wykrył dryft wyłącznie przy zastosowaniu miary czułości.
+        \item Poza DDM algorytmy przy mierze precyzji bardzo rzadko wykrywają dryft.
+        \item DDM sprawdził się w wykrywaniu spadków specyficzności -- wykres charakteryzuje się skokowymi zmianami, z którymi algorytm, wedle definicji, dobrze sobie radzi.
+    \end{itemize}
+    \item Maszyna wektorów nośnych:
+    \begin{itemize}
+        \item Parametr regularyzacji nie wpływa na wykrycie dryftu w przypadku jądra radialnego - dla regularyzacji 0,1 algorytm zachowuje się podobnie także w przypadku jądra wielomianego, dopiero przy regularyzacji 1 widzimy zmiany w miejsach wykrycia drfytu.
+        \item Algorytm DDM dla miary dokładności wykrywa dryft jedynie na początku w przypadku większości parametrów przebiegu  klasyfikacji.
+        \item Algorytm EDDM dla miar dokładności oraz precyzji wykrywa dryft zbyt często, zaś dla miary czułości - wcale.
+        \item Algorytm ADWIN przy mierze specyficzności wykrywa dryft dużo częściej niż w inne algorytmy, co nie zdarza się w przypadku innych klasyfikatorów.
+    \end{itemize}
+    \item Klasyfikator k-najbliższych sąsiadów:
+    \begin{itemize}
+        \item Liczba najbliższych sąsiadów nie ma znaczącego wpływu na wykrycie dryftu dla większość algorytmów.
+        \item Algorytm DDM dużo częściej wykrywa dryft dla 2 sąsiadów w przypadku miar dokładności oraz precyzji.
+        \item Algorytm EDDM zwraca bardzo dużo punktów potencjalnych dryftów, natomiast w żaden sposób nie są one odzwierciedlane na wykresie. Może to świadczyć o tym, że nie jest on optymalnym wyborem dla tego klasyfikatora.
+    \end{itemize}
+    \item Sztuczna sieć neuronowa:
+    \begin{itemize}
+        \item Algorytmy wykrywają zauważalnie rzadziej dryft dla 10 warstw ukrytych oraz 1000 iteracji. Konfiguracja ta wykazała najlepsze wyniki we wszystkich wskaźnikach, dlatego brak dryftu jest tu logicznym efektem.
+        \item Algorytm DDM na Rys. \ref{nn10-1000} pokazowo prezentuje teoretyczne działanie algorytmów detekcji dryftu
+        \item Dla 1 warstwy ukrytej 1000 iteracji okazało się być zbyt dużą liczbą -- wystąpiło tutaj zjawisko przeuczenia, stąd skrajne wartości czułości i specyficzności. 
+    \end{itemize}
+    \item Sieć neuronowa okazała się najtrafniejszą metodą klasyfikacji dla wybranego przez nas zbioru danych.
+    \item Nie da się jednoznacznie wybrać najlepszej metody detekcji dryftu. Każdy z nich sprawdzał się dobrze w określonych konfiguracjach. Dobór metody wydaje się więc być uzależniony od wybranego klasyfikatora oraz użytej miary.
+   
+\end{enumerate}
+
+% \newpage
+% \nocite{*}
+% \begin{thebibliography}{}
+% \end{thebibliography}
+
+\end{document}
