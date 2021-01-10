@@ -16,29 +16,34 @@ class KSWIN():
         self.alpha = alpha
         self.window_size = window_size
         self.subwindow_size = subwindow_size
+        self.length = 0
         self.window = np.array([])
-        self.drift_indexes = np.array([])
+        self.drift_indexes = []
+
+
+    def add_data_points(self, data_points):
+        for data_point in data_points:
+            self.add_data_point(int(data_point))
 
 
     def add_data_point(self, data_point):
-        self.window.append(data_point)
+        self.window = np.concatenate([self.window,[data_point]])
 
         while len(self.window) > self.window_size:
             self.window = np.delete(self.window,0)
 
         if len(self.window) == self.window_size:
+            self.window = np.delete(self.window,0)
             r_subwindow = self.window[-self.subwindow_size:]
             w_subwindow = np.random.choice(self.window[:-self.subwindow_size], self.subwindow_size)
 
-            (statistic, p_value) = stats.ks_2samp(w_subwindow, r_subwindow, mode="exact")
+            (statistic, p_value) = stats.ks_2samp(w_subwindow, r_subwindow)
 
             if p_value <= self.alpha and statistic > 0.1:
-                self.drift_indexes.append(True)
-                self.window = self.window[-self.stat_size:]
-            else:
-                self.drift_indexes.append(False)
-        else:
-            self.drift_indexes.append(False)
+                self.drift_indexes.append(self.length - 1)
+                self.window = r_subwindow
+
+        self.length += 1
 
 
     def reset(self):
