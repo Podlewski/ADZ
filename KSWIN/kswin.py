@@ -40,7 +40,7 @@ class KSWIN():
             (statistic, p_value) = stats.ks_2samp(w_subwindow, r_subwindow)
 
             if p_value <= self.alpha and statistic > 0.1:
-                self.drift_indexes.append(self.length - 1)
+                self.drift_indexes.append(self.length - self.subwindow_size)
                 self.window = r_subwindow
 
         self.length += 1
